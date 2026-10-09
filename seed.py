@@ -6,6 +6,11 @@ Passwords are typed in (never stored in code). On hosts without a console you ca
 instead set OWNER_USERNAME, OWNER_PASSWORD, WORKER_USERNAME, WORKER_PASSWORD as
 environment variables for one run, then remove them.
 Running it again is safe: existing users and customers are left alone.
+
+Forgot the passwords or want new usernames?
+    python seed.py --reset-logins
+This removes ALL usernames and passwords (invoices, customers and settings are kept)
+and then asks for new owner and worker logins.
 """
 import getpass
 import os
@@ -13,7 +18,7 @@ import sys
 
 from app.auth import create_user, password_problem
 from app.config import load_config
-from app.db import SEED_CUSTOMERS, connect, init_db
+from app.db import SEED_CUSTOMERS, audit, connect, init_db, transaction
 
 
 def ask_password(label):
@@ -49,11 +54,25 @@ def ensure_user(conn, role, default_name):
     print(f"- Created {role} account '{username}'.")
 
 
+def reset_logins(conn):
+    count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    answer = input(f"This removes all {count} login(s). Invoices and customers are kept. Type YES to continue: ")
+    if answer.strip() != "YES":
+        print("Nothing changed.")
+        sys.exit(1)
+    with transaction(conn):
+        conn.execute("DELETE FROM users")
+        audit(conn, None, "logins_reset", details=f"{count} login(s) removed by seed.py --reset-logins")
+    print("- All old usernames and passwords removed.")
+
+
 def main():
     cfg = load_config()
     conn = connect(cfg["DATABASE_PATH"])
     init_db(conn, seed_customers=True)
     print(f"Database: {cfg['DATABASE_PATH']}")
+    if "--reset-logins" in sys.argv:
+        reset_logins(conn)
     print("- Customers ready:", ", ".join(SEED_CUSTOMERS))
     ensure_user(conn, "owner", "owner")
     ensure_user(conn, "worker", "worker")

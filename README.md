@@ -41,6 +41,12 @@ To use it from phones on the same Wi-Fi, start it with `HOST=0.0.0.0 python run.
 (on Windows: `set HOST=0.0.0.0` then `python run.py`), then open `http://<computer's IP address>:8000` on the phone.
 For use outside the shop, put it online (section 2).
 
+### Forgot a password, or want to start the logins again?
+- One login: the owner can set a new password for any user in **Settings → Users**.
+- All logins: stop the app (Ctrl + C), run `python seed.py --reset-logins`, type `YES`,
+  then choose new owner and worker usernames and passwords. Invoices, customers and settings are kept.
+- Wipe everything (only before real invoices exist): stop the app, delete the `data` folder, run `python seed.py` again.
+
 ### Settings (environment variables)
 | Variable | Meaning | Default |
 |---|---|---|
