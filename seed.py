@@ -17,6 +17,8 @@ from app.db import SEED_CUSTOMERS, connect, init_db
 
 
 def ask_password(label):
+    print("  NOTE: for safety, nothing appears on screen while you type a password (not even * or dots).")
+    print("  Just type it and press Enter.")
     while True:
         pw = getpass.getpass(f"Password for {label} (min 8 characters): ")
         problem = password_problem(pw)
