@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<h1>Invoices</h1>
+<form method="get" class="card">
+  <div class="grid3">
+    <div class="field"><label for="from">From date</label><input id="from" type="date" name="from" value="{{ f['from'] }}"></div>
+    <div class="field"><label for="to">To date</label><input id="to" type="date" name="to" value="{{ f['to'] }}"></div>
+    <div class="field"><label for="number">Invoice No.</label><input id="number" type="text" inputmode="numeric" name="number" value="{{ f['number'] }}"></div>
+  </div>
+  <div class="field"><label for="customer">Customer</label><input id="customer" type="search" name="customer" list="customer-list" value="{{ f['customer'] }}">
+    <datalist id="customer-list">{% for c in customers %}<option value="{{ c.name }}">{% endfor %}</datalist></div>
+  <div class="actions" style="margin:0"><button class="btn" type="submit">Search</button><a class="btn secondary" href="{{ url_for('main.list_invoices') }}">Clear</a></div>
+</form>
+<p class="muted">{{ rows|length }} invoice{{ '' if rows|length == 1 else 's' }} shown{% if rows|length == 500 %} (first 500 – narrow the search){% endif %}.</p>
+<div class="table-wrap">
+<table class="list stack">
+  <thead><tr><th>Date</th><th>No.</th><th>Party</th><th class="num">Qty</th><th class="num">Grand Total</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for i in rows %}
+  <tr class="{{ 'cancelled' if i.status == 'cancelled' }}">
+    <td data-l="Date">{{ i.invoice_date|dmy }}</td>
+    <td data-l="No."><b>{{ i.number }}</b></td>
+    <td data-l="Party">{{ i.customer_name }}</td>
+    <td data-l="Qty" class="num">{{ i.total_qty }}</td>
+    <td data-l="Total" class="num">{{ i.grand_total|inr }}</td>
+    <td data-l="Status">{% if i.status == 'cancelled' %}<span class="tag cancelled">CANCELLED</span>{% else %}Active{% endif %}{% if i.source == 'imported' %} <span class="tag imported">Imported</span>{% endif %}</td>
+    <td class="nowrap"><a href="{{ url_for('main.view_invoice', invoice_id=i.id) }}">View</a> ·
+        <a href="{{ url_for('main.print_invoice', invoice_id=i.id) }}" target="_blank" rel="noopener">Print</a> ·
+        <a href="{{ url_for('main.invoice_pdf_view', invoice_id=i.id) }}">PDF</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="muted">No invoices found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

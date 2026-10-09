@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice {{ inv.number }} - {{ inv.customer_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="background:#fff">
+  <div class="no-print" style="padding:12px;text-align:center">
+    <button class="btn" onclick="window.print()">Print</button>
+    <a class="btn secondary" href="{{ url_for('main.invoice_pdf_view', invoice_id=inv.id) }}">Download PDF</a>
+    <a class="btn secondary" href="{{ url_for('main.view_invoice', invoice_id=inv.id) }}">Back</a>
+    <p class="muted">If the page has extra headers or footers, choose “Margins: None” and untick “Headers and footers” in the print window.</p>
+  </div>
+  {% include "_sheet.html" %}
+  {% if autoprint %}<script>window.addEventListener("load", function () { setTimeout(function () { window.print(); }, 300); });</script>{% endif %}
+</body>
+</html>

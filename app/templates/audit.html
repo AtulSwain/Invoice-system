@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<h1>Audit log <span class="muted" style="font-size:1rem">(latest 500)</span></h1>
+<div class="table-wrap">
+<table class="list stack">
+  <thead><tr><th>When</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr><td data-l="When" class="nowrap">{{ r.ts|dmy }}{{ r.ts[10:] }}</td><td data-l="User">{{ r.username or '' }}</td>
+      <td data-l="Action">{{ r.action.replace('_', ' ') }}</td>
+      <td data-l="Details">{% if r.invoice_id %}<a href="{{ url_for('main.view_invoice', invoice_id=r.invoice_id) }}">invoice</a> · {% endif %}{{ r.details }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

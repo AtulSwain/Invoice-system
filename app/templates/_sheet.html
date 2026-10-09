@@ -1,0 +1,54 @@
+{# Printed invoice laid out like the paper pad. Needs: inv, lines, blank_rows, s, address, watermark #}
+<div class="sheet{{ ' with-wm' if watermark }}">
+  <div class="bar">TAX INVOICE</div>
+  <div class="head">
+    <div class="logo"><img src="{{ url_for('main.logo') }}" alt="Logo"></div>
+    <div class="co">
+      <div class="co-name">{{ s.company_name }}</div>
+      <div class="co-tag">{{ s.tagline }}</div>
+      <div class="co-addr">{{ address }}</div>
+      <div class="co-mob">Mob.: {{ s.mobile }}</div>
+    </div>
+  </div>
+  <div class="gst">GSTIN : {{ s.gstin }}</div>
+  <div class="party">
+    <div class="l">
+      <div class="row"><span class="k">M/s.</span><span class="name">{{ inv.customer_name }}</span></div>
+      <div class="row addr"><span class="k">Add.</span><span>{{ inv.customer_address }}</span></div>
+      <div class="row"><b>Party's GSTIN :</b>&nbsp;<b>{{ inv.customer_gstin }}</b></div>
+    </div>
+    <div class="r">
+      <div><span>Invoice No.</span><span class="inv-no">{{ inv.number }}</span></div>
+      <div><span>Date</span><span>{{ inv.invoice_date|dmy }}</span></div>
+    </div>
+  </div>
+  <table class="items">
+    <colgroup><col style="width:12mm"><col style="width:22mm"><col><col style="width:20mm"><col style="width:20mm"><col style="width:20mm"><col style="width:28mm"></colgroup>
+    <thead><tr><th>Sr.<br>No.</th><th>Challan<br>No.</th><th>Description</th><th>HSN<br>Code</th><th>Qnty<br>Pcs.</th><th>Rate</th><th>Amount</th></tr></thead>
+    <tbody>
+    {% for l in lines %}
+      <tr><td class="c">{{ l.sr_no }}</td><td>{{ l.challan_no }}</td><td>{{ l.description }}</td><td class="c">{{ l.hsn_code }}</td>
+          <td class="n">{{ l.qty }}</td><td class="n">{{ l.rate }}</td><td class="n">{{ l.amount }}</td></tr>
+    {% endfor %}
+    {% for _ in range(blank_rows) %}<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <div class="bottom">
+    <div class="l">
+      <div class="note">{{ inv.note }}</div>
+      <div class="w-label">Rupees in Words :</div>
+      <div class="w">{{ inv.grand_total|words }}</div>
+    </div>
+    <table class="tot">
+      <tr><td>Net Total</td><td>{{ inv.net_total|inr(false) }}</td></tr>
+      <tr><td>CGST {{ inv.cgst_rate }}%</td><td>{{ inv.cgst|inr(false) }}</td></tr>
+      <tr><td>SGST {{ inv.sgst_rate }}%</td><td>{{ inv.sgst|inr(false) }}</td></tr>
+      <tr><td>Grand Total</td><td>{{ inv.grand_total|inr(false) }}</td></tr>
+    </table>
+  </div>
+  <div class="foot">
+    <div class="l"><div>{{ s.declaration }}</div><div class="eoe">{{ s.footer_left }}</div></div>
+    <div class="r"><div class="for">For {{ s.company_name }}</div><div class="sig">{{ s.signatory_title }}</div></div>
+  </div>
+  {% if inv.status == 'cancelled' %}<div class="stamp">CANCELLED</div>{% endif %}
+</div>

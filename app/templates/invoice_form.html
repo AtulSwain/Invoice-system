@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}New Invoice{% endblock %}
+{% block content %}
+<h1>New Invoice <span class="muted" style="font-size:1rem">(number {{ seq.next_number }} will be given when saved)</span></h1>
+{% if not seq.confirmed %}
+<div class="banner">The starting invoice number is not confirmed yet. {% if is_owner %}<a href="{{ url_for('main.numbering') }}">Confirm it here</a> before saving.{% else %}Ask the owner to confirm it before saving.{% endif %}</div>
+{% endif %}
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+
+<form method="post" action="{{ url_for('main.review_invoice') }}" id="invform" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card">
+    <div class="grid2">
+      <div class="field">
+        <label for="customer_name">M/s (Customer name) *</label>
+        <input id="customer_name" type="text" name="customer_name" list="customer-list" value="{{ data.customer_name }}" placeholder="Type to search or add new" required>
+        <datalist id="customer-list">{% for c in customers %}<option value="{{ c.name }}">{% endfor %}</datalist>
+        <div class="muted" id="cust-hint" style="font-size:.9rem"></div>
+      </div>
+      <div class="field">
+        <label for="invoice_date">Date</label>
+        <input id="invoice_date" type="date" name="invoice_date" value="{{ data.invoice_date }}" min="{{ min_date }}" max="{{ max_date }}" required>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="customer_address">Add. (Address)</label><textarea id="customer_address" name="customer_address" rows="2">{{ data.customer_address }}</textarea></div>
+      <div class="field"><label for="customer_gstin">Party's GSTIN (optional)</label><input id="customer_gstin" type="text" name="customer_gstin" value="{{ data.customer_gstin }}" maxlength="15" style="text-transform:uppercase" placeholder="27ABCDE1234F1Z5"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Items <span class="muted" style="font-size:.9rem">(up to {{ max_items }})</span></h2>
+    <div class="items-head"><div>Sr.</div><div>Challan No.</div><div>Description</div><div>HSN Code</div><div>Qnty Pcs.</div><div>Rate ₹</div><div class="right">Amount ₹</div><div></div></div>
+    <div id="items">
+      {% for l in data.lines %}{% with n = loop.index %}{% include "_item_row.html" %}{% endwith %}{% endfor %}
+    </div>
+    <template id="row-template">{% with n = 0, l = {"hsn_code": default_hsn} %}{% include "_item_row.html" %}{% endwith %}</template>
+    <div class="actions"><button type="button" class="btn secondary" id="add-row">+ Add item</button></div>
+  </div>
+
+  <div class="card">
+    <div class="field"><label for="note">Note (prints under the table)</label><input id="note" type="text" name="note" value="{{ data.note }}"></div>
+    <div class="totals" id="totals" data-cgst="{{ cgst_rate }}" data-sgst="{{ sgst_rate }}">
+      <div><span>Net Total</span><span id="t-net">0.00</span></div>
+      <div><span>CGST {{ cgst_rate }}%</span><span id="t-cgst">0.00</span></div>
+      <div><span>SGST {{ sgst_rate }}%</span><span id="t-sgst">0.00</span></div>
+      <div class="grand"><span>Grand Total</span><span id="t-grand">₹0.00</span></div>
+    </div>
+  </div>
+  <div class="actions"><button class="btn huge" type="submit">Check &amp; Save Invoice →</button></div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>window.CUSTOMERS = {{ customers|tojson }}; window.MAX_ITEMS = {{ max_items }};</script>
+<script src="{{ url_for('static', filename='invoice_form.js') }}"></script>
+{% endblock %}

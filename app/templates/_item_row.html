@@ -1,0 +1,10 @@
+<div class="item">
+  <div class="sr">{{ n }}</div>
+  <div class="cell"><span class="lbl">Challan No.</span><input type="text" name="challan_no" value="{{ l.challan_no }}" aria-label="Challan No."></div>
+  <div class="cell desc"><span class="lbl">Description</span><input type="text" name="description" value="{{ l.description }}" aria-label="Description"></div>
+  <div class="cell"><span class="lbl">HSN Code</span><input type="text" name="hsn_code" value="{{ l.hsn_code }}" aria-label="HSN Code"></div>
+  <div class="cell"><span class="lbl">Qnty (Pcs)</span><input type="text" name="qty" value="{{ l.qty_text }}" inputmode="numeric" pattern="[0-9]*" aria-label="Quantity" class="qty"></div>
+  <div class="cell"><span class="lbl">Rate (₹)</span><input type="text" name="rate" value="{{ l.rate_text }}" inputmode="decimal" aria-label="Rate" class="rate"></div>
+  <div class="amount">–</div>
+  <button type="button" class="remove" title="Remove this item" aria-label="Remove item">×</button>
+</div>

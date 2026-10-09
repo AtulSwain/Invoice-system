@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+{% if not seq.confirmed %}
+<div class="banner">
+  {% if is_owner %}
+    <b>Before the first invoice:</b> please confirm the starting invoice number (now set to <b>{{ seq.next_number }}</b>).
+    Check it against the paper pad and the ledger.
+    <div class="actions"><a class="btn" href="{{ url_for('main.numbering') }}">Check and confirm number</a></div>
+  {% else %}
+    The owner has not yet confirmed the starting invoice number. Invoices can be saved after the owner confirms it.
+  {% endif %}
+</div>
+{% endif %}
+<section class="hero">
+  <span class="mark" aria-hidden="true"></span>
+  <div>
+    <p class="hero-greet">Namaste, {{ user.username|capitalize }}</p>
+    <p class="hero-sub">{{ today|dmy }} · Ready for today's bills.</p>
+    <a class="btn huge" href="{{ url_for('main.new_invoice') }}">+ New Invoice</a>
+  </div>
+</section>
+<div class="stats">
+  <div class="stat"><div class="k">Next invoice no.</div><div class="v">{{ seq.next_number }}</div></div>
+  <div class="stat"><div class="k">Bills today</div><div class="v">{{ todays|selectattr('status', 'equalto', 'active')|list|length }}</div></div>
+  <div class="stat"><div class="k">Today's total</div><div class="v">{{ todays_total|inr }}</div></div>
+</div>
+<h2 class="section-title">Today's invoices</h2>
+{% if todays %}
+<div class="table-wrap">
+<table class="list stack">
+  <thead><tr><th>No.</th><th>Party</th><th class="num">Qty</th><th class="num">Grand Total</th><th>By</th><th></th></tr></thead>
+  <tbody>
+  {% for i in todays %}
+  <tr class="{{ 'cancelled' if i.status == 'cancelled' }}">
+    <td data-l="No."><b>{{ i.number }}</b>{% if i.source == 'imported' %} <span class="tag imported">Imported</span>{% endif %}{% if i.status == 'cancelled' %} <span class="tag cancelled">CANCELLED</span>{% endif %}</td>
+    <td data-l="Party">{{ i.customer_name }}</td>
+    <td data-l="Qty" class="num">{{ i.total_qty }}</td>
+    <td data-l="Total" class="num">{{ i.grand_total|inr }}</td>
+    <td data-l="By">{{ i.created_by }}</td>
+    <td><a href="{{ url_for('main.view_invoice', invoice_id=i.id) }}">Open</a></td>
+  </tr>
+  {% endfor %}
+  <tr class="total"><td colspan="3">Total (active)</td><td class="num">{{ todays_total|inr }}</td><td colspan="2"></td></tr>
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">No invoices yet today.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+<div class="actions">
+  <a class="btn secondary" href="{{ url_for('main.numbering') }}">Invoice numbering (next: {{ seq.next_number }}{{ '' if seq.confirmed else ', not confirmed' }})</a>
+  <a class="btn secondary" href="{{ url_for('main.import_bills') }}">Import past bills</a>
+  <a class="btn secondary" href="{{ url_for('main.audit_log') }}">Audit log</a>
+</div>
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h2 style="margin-top:0">Business details (printed on every invoice)</h2>
+  <div class="grid2">
+    <div class="field"><label for="company_name">Company name</label><input id="company_name" type="text" name="company_name" value="{{ s.company_name }}"></div>
+    <div class="field"><label for="tagline">Tagline</label><input id="tagline" type="text" name="tagline" value="{{ s.tagline }}"></div>
+  </div>
+  <div class="field"><label for="address">Address</label><input id="address" type="text" name="address" value="{{ s.address }}"></div>
+  <div class="grid3">
+    <div class="field"><label for="pin_code">PIN code</label><input id="pin_code" type="text" inputmode="numeric" maxlength="6" name="pin_code" value="{{ s.pin_code }}" placeholder="Not set – leave blank"></div>
+    <div class="field"><label for="mobile">Mobile</label><input id="mobile" type="tel" name="mobile" value="{{ s.mobile }}"></div>
+    <div class="field"><label for="gstin">GSTIN</label><input id="gstin" type="text" name="gstin" value="{{ s.gstin }}" maxlength="15" style="text-transform:uppercase"></div>
+  </div>
+  <div class="field"><label for="declaration">Declaration</label><textarea id="declaration" name="declaration" rows="4">{{ s.declaration }}</textarea></div>
+  <div class="grid3">
+    <div class="field"><label for="footer_left">Footer (left)</label><input id="footer_left" type="text" name="footer_left" value="{{ s.footer_left }}"></div>
+    <div class="field"><label for="signatory_title">Under signature</label><input id="signatory_title" type="text" name="signatory_title" value="{{ s.signatory_title }}"></div>
+    <div class="field"><label for="default_note">Default note</label><input id="default_note" type="text" name="default_note" value="{{ s.default_note }}"></div>
+  </div>
+  <h2>Tax rates (apply to new invoices only)</h2>
+  <div class="grid3">
+    <div class="field"><label for="cgst_rate">CGST %</label><input id="cgst_rate" type="text" inputmode="decimal" name="cgst_rate" value="{{ s.cgst_rate }}"></div>
+    <div class="field"><label for="sgst_rate">SGST %</label><input id="sgst_rate" type="text" inputmode="decimal" name="sgst_rate" value="{{ s.sgst_rate }}"></div>
+    <div class="field"><label for="default_hsn">Default HSN/SAC code for new rows</label><input id="default_hsn" type="text" name="default_hsn" value="{{ s.default_hsn }}" placeholder="optional"></div>
+  </div>
+  <h2>Invoice look</h2>
+  <div class="field"><label style="font-weight:400"><input type="checkbox" name="invoice_watermark" value="1" {{ 'checked' if s.invoice_watermark == '1' }}>
+    Show a faint Ganpati Bappa watermark behind the item table (screen, print and PDF)</label></div>
+  <button class="btn" type="submit">Save settings</button>
+</form>
+
+<div class="card">
+  <h2 style="margin-top:0">Logo</h2>
+  <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <img src="{{ url_for('main.logo') }}" alt="Current logo" style="width:88px;height:88px;object-fit:contain;border:1px solid var(--line);border-radius:50%;padding:8px;background:#fff">
+    <p style="margin:0">Currently: {{ 'your uploaded logo' if has_logo else 'the built-in Ganpati Bappa artwork' }}.<br>
+      <span class="muted">To use a different logo, upload a square PNG or JPG. “Remove logo” goes back to Ganpati Bappa.</span></p>
+  </div>
+  <form method="post" action="{{ url_for('main.upload_logo') }}" enctype="multipart/form-data" class="actions">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="file" name="logo" accept="image/png,image/jpeg">
+    <button class="btn" type="submit">Upload logo</button>
+    {% if has_logo %}<button class="btn secondary" type="submit" name="remove" value="1">Remove logo</button>{% endif %}
+  </form>
+</div>
+
+<div class="card" id="users">
+  <h2 style="margin-top:0">Users</h2>
+  <div class="table-wrap">
+  <table class="list stack">
+    <thead><tr><th>Username</th><th>Role</th><th>Status</th><th>New password</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+      <td data-l="User"><b>{{ u.username }}</b></td><td data-l="Role">{{ u.role|capitalize }}</td>
+      <td data-l="Status">{{ 'Active' if u.active else 'Switched off' }}{% if u.locked_until %} · locked until {{ u.locked_until[11:16] }}{% endif %}</td>
+      <td><form method="post" action="{{ url_for('main.reset_password', user_id=u.id) }}" class="actions" style="margin:0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="password" name="password" placeholder="min 8 characters" autocomplete="new-password" aria-label="New password for {{ u.username }}" style="max-width:200px">
+        <button class="btn small secondary" type="submit">Set</button></form></td>
+      <td>{% if u.id != user.id %}<form method="post" action="{{ url_for('main.toggle_user', user_id=u.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn small secondary" type="submit">{{ 'Switch off' if u.active else 'Switch on' }}</button></form>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <h2>Add a user</h2>
+  <form method="post" action="{{ url_for('main.add_user') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="grid3">
+      <div class="field"><label for="nu">Username</label><input id="nu" type="text" name="username" autocapitalize="none" required></div>
+      <div class="field"><label for="np">Password</label><input id="np" type="password" name="password" autocomplete="new-password" required minlength="8"></div>
+      <div class="field"><label for="nr">Role</label><select id="nr" name="role"><option value="worker">Worker</option><option value="owner">Owner</option></select></div>
+    </div>
+    <button class="btn" type="submit">Add user</button>
+  </form>
+</div>
+{% endblock %}

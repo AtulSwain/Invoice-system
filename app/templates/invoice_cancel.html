@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Cancel invoice {{ inv.number }}?</h1>
+<div class="card">
+  <p><b>{{ inv.customer_name }}</b> · {{ inv.invoice_date|dmy }} · {{ inv.grand_total|inr }}</p>
+  <p>The invoice will be marked <b>CANCELLED</b>. Number {{ inv.number }} stays used and is never given again.
+     It will show as zero in the monthly report. This cannot be undone.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="reason">Reason *</label><input id="reason" type="text" name="reason" required placeholder="e.g. wrong rate, party returned goods"></div>
+    <div class="actions">
+      <button class="btn danger" type="submit">Yes, cancel invoice {{ inv.number }}</button>
+      <a class="btn secondary" href="{{ url_for('main.view_invoice', invoice_id=inv.id) }}">No, go back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
