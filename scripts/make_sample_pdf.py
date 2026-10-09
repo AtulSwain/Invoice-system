@@ -30,7 +30,8 @@ def main():
         inv, items = get_invoice(conn, create_invoice(conn, user, data))
         out = ROOT / "samples" / "sample_invoice.pdf"
         out.parent.mkdir(exist_ok=True)
-        out.write_bytes(invoice_pdf(inv, items, get_settings(conn)))
+        static = ROOT / "app" / "static"
+        out.write_bytes(invoice_pdf(inv, items, get_settings(conn), static / "ganesh.png", static / "ganesh-watermark.png"))
         conn.close()
     print("Written", out)
 

@@ -42,7 +42,7 @@ def rate_label(rate: str) -> str:
     return f"{rate}%"
 
 
-def invoice_pdf(inv, items, settings, logo_path=None) -> bytes:
+def invoice_pdf(inv, items, settings, logo_path=None, watermark_path=None) -> bytes:
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import mm
@@ -60,6 +60,10 @@ def invoice_pdf(inv, items, settings, logo_path=None) -> bytes:
     c.setAuthor(settings["company_name"])
     c.setLineWidth(0.8)
     y = H - M  # current top edge, moving down
+
+    if watermark_path and Path(watermark_path).exists():
+        wm = 125 * mm
+        c.drawImage(str(watermark_path), (W - wm) / 2, H * 0.46 - wm / 2, wm, wm, mask="auto")
 
     def text(x, yy, s, font, size, align="left", color=colors.black):
         c.setFont(font, size)
@@ -95,7 +99,9 @@ def invoice_pdf(inv, items, settings, logo_path=None) -> bytes:
         p.circle(cx, cy, r)
         c.saveState()
         c.clipPath(p, stroke=0, fill=0)
-        c.drawImage(str(logo_path), cx - r, cy - r, 2 * r, 2 * r, preserveAspectRatio=True, anchor="c", mask="auto")
+        inset = r * 0.82  # keep artwork clear of the circle edge
+        c.drawImage(str(logo_path), cx - inset, cy - inset, 2 * inset, 2 * inset, preserveAspectRatio=True,
+                    anchor="c", mask="auto")
         c.restoreState()
         c.circle(cx, cy, r)
     else:

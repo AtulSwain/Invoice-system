@@ -26,12 +26,25 @@ def db():
     return current_app.get_db()
 
 
-def logo_path():
+BUILTIN_LOGO = Path(__file__).parent / "static" / "ganesh.png"
+WATERMARK = Path(__file__).parent / "static" / "ganesh-watermark.png"
+
+
+def custom_logo_path():
     name = get_settings(db()).get("logo_file")
     if not name:
         return None
     path = Path(current_app.config["DATA_DIR"]) / name
     return path if path.exists() else None
+
+
+def logo_path():
+    """The uploaded logo, or the built-in Ganpati line art."""
+    return custom_logo_path() or BUILTIN_LOGO
+
+
+def watermark_path():
+    return WATERMARK if get_settings(db()).get("invoice_watermark") == "1" else None
 
 
 # ------------------------------------------------------------------ login
@@ -69,7 +82,7 @@ def dashboard():
     todays = db().execute(
         "SELECT * FROM invoices WHERE invoice_date = ? OR substr(created_at, 1, 10) = ? "
         "ORDER BY source, number DESC", (today, today)).fetchall()
-    return render_template("dashboard.html", seq=get_sequence(db()), todays=todays,
+    return render_template("dashboard.html", seq=get_sequence(db()), todays=todays, today=today,
                            todays_total=sum(i["grand_total"] for i in todays if i["status"] == "active"))
 
 
@@ -189,7 +202,7 @@ def invoice_context(inv, items):
     s = get_settings(db())
     lines = printable_lines(inv, items)
     return {"inv": inv, "lines": lines, "blank_rows": max(0, PAD_ROWS - len(lines)), "s": s,
-            "address": full_address(s), "has_logo": logo_path() is not None}
+            "address": full_address(s), "watermark": s.get("invoice_watermark") == "1"}
 
 
 @bp.route("/invoices/<int:invoice_id>")
@@ -210,7 +223,7 @@ def print_invoice(invoice_id):
 @login_required
 def invoice_pdf_view(invoice_id):
     inv, items = load_invoice_or_404(invoice_id)
-    pdf = invoice_pdf(inv, items, get_settings(db()), logo_path())
+    pdf = invoice_pdf(inv, items, get_settings(db()), logo_path(), watermark_path())
     name = f"Invoice-{inv['number']}{'-imported' if inv['source'] == 'imported' else ''}.pdf"
     disposition = "inline" if request.args.get("inline") else "attachment"
     return Response(pdf, mimetype="application/pdf",
@@ -407,7 +420,7 @@ def import_template():
 # ------------------------------------------------------------------ settings & users
 
 EDITABLE_SETTINGS = ["company_name", "tagline", "address", "pin_code", "mobile", "gstin", "declaration",
-                     "footer_left", "signatory_title", "default_note", "default_hsn"]
+                     "footer_left", "signatory_title", "default_note", "default_hsn", "invoice_watermark"]
 
 
 @bp.route("/settings", methods=["GET", "POST"])
@@ -417,6 +430,7 @@ def settings():
     errors = []
     if request.method == "POST":
         new = {k: (request.form.get(k) or "").strip() for k in EDITABLE_SETTINGS}
+        new["invoice_watermark"] = "1" if new["invoice_watermark"] else "0"
         new["gstin"] = clean_gstin(new["gstin"])
         if gstin_error(new["gstin"]):
             errors.append("Business " + gstin_error(new["gstin"]))
@@ -443,7 +457,7 @@ def settings():
             return redirect(url_for("main.settings"))
         s.update(new)
     users = db().execute("SELECT * FROM users ORDER BY role, username").fetchall()
-    return render_template("settings.html", s=s, errors=errors, users=users, has_logo=logo_path() is not None,
+    return render_template("settings.html", s=s, errors=errors, users=users, has_logo=custom_logo_path() is not None,
                            seq=get_sequence(db()))
 
 
@@ -481,10 +495,7 @@ def upload_logo():
 @bp.route("/logo")
 @login_required
 def logo():
-    path = logo_path()
-    if not path:
-        abort(404)
-    return send_file(path, max_age=300)
+    return send_file(logo_path(), max_age=300)
 
 
 @bp.route("/users", methods=["POST"])

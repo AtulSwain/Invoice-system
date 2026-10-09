@@ -33,12 +33,19 @@
     <div class="field"><label for="sgst_rate">SGST %</label><input id="sgst_rate" type="text" inputmode="decimal" name="sgst_rate" value="{{ s.sgst_rate }}"></div>
     <div class="field"><label for="default_hsn">Default HSN/SAC code for new rows</label><input id="default_hsn" type="text" name="default_hsn" value="{{ s.default_hsn }}" placeholder="optional"></div>
   </div>
+  <h2>Invoice look</h2>
+  <div class="field"><label style="font-weight:400"><input type="checkbox" name="invoice_watermark" value="1" {{ 'checked' if s.invoice_watermark == '1' }}>
+    Show a faint Ganpati Bappa watermark behind the item table (screen, print and PDF)</label></div>
   <button class="btn" type="submit">Save settings</button>
 </form>
 
 <div class="card">
   <h2 style="margin-top:0">Logo</h2>
-  <p>Currently: {{ 'uploaded logo' if has_logo else 'the text “LOGO” in a circle' }}. Use a square PNG or JPG.</p>
+  <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <img src="{{ url_for('main.logo') }}" alt="Current logo" style="width:88px;height:88px;object-fit:contain;border:1px solid var(--line);border-radius:50%;padding:8px;background:#fff">
+    <p style="margin:0">Currently: {{ 'your uploaded logo' if has_logo else 'the built-in Ganpati Bappa artwork' }}.<br>
+      <span class="muted">To use a different logo, upload a square PNG or JPG. “Remove logo” goes back to Ganpati Bappa.</span></p>
+  </div>
   <form method="post" action="{{ url_for('main.upload_logo') }}" enctype="multipart/form-data" class="actions">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="file" name="logo" accept="image/png,image/jpeg">

@@ -28,6 +28,7 @@ DEFAULT_SETTINGS = {
     "default_note": "LABOUR CHARGES ONLY",
     "default_hsn": "",
     "logo_file": "",
+    "invoice_watermark": "1",   # faint Ganpati artwork behind the item table
 }
 
 SEED_CUSTOMERS = ["Jainam Creation", "JSON Lifestyle LLP", "Swastik Enterprises", "Hareesh Enterprises"]

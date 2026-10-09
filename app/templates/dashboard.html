@@ -11,11 +11,20 @@
   {% endif %}
 </div>
 {% endif %}
-<div class="hero">
-  <a class="btn huge" href="{{ url_for('main.new_invoice') }}">+ New Invoice</a>
-  <div class="next-no">Next invoice number: <b>{{ seq.next_number }}</b></div>
+<section class="hero">
+  <span class="mark" aria-hidden="true"></span>
+  <div>
+    <p class="hero-greet">Namaste, {{ user.username|capitalize }}</p>
+    <p class="hero-sub">{{ today|dmy }} · Ready for today's bills.</p>
+    <a class="btn huge" href="{{ url_for('main.new_invoice') }}">+ New Invoice</a>
+  </div>
+</section>
+<div class="stats">
+  <div class="stat"><div class="k">Next invoice no.</div><div class="v">{{ seq.next_number }}</div></div>
+  <div class="stat"><div class="k">Bills today</div><div class="v">{{ todays|selectattr('status', 'equalto', 'active')|list|length }}</div></div>
+  <div class="stat"><div class="k">Today's total</div><div class="v">{{ todays_total|inr }}</div></div>
 </div>
-<h2>Today's invoices</h2>
+<h2 class="section-title">Today's invoices</h2>
 {% if todays %}
 <div class="table-wrap">
 <table class="list stack">

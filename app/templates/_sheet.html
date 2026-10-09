@@ -1,8 +1,8 @@
-{# Printed invoice laid out like the paper pad. Needs: inv, lines, blank_rows, s, address, has_logo #}
-<div class="sheet">
+{# Printed invoice laid out like the paper pad. Needs: inv, lines, blank_rows, s, address, watermark #}
+<div class="sheet{{ ' with-wm' if watermark }}">
   <div class="bar">TAX INVOICE</div>
   <div class="head">
-    <div class="logo">{% if has_logo %}<img src="{{ url_for('main.logo') }}" alt="Logo">{% else %}LOGO{% endif %}</div>
+    <div class="logo"><img src="{{ url_for('main.logo') }}" alt="Logo"></div>
     <div class="co">
       <div class="co-name">{{ s.company_name }}</div>
       <div class="co-tag">{{ s.tagline }}</div>

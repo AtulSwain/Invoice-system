@@ -105,7 +105,9 @@ Both work if you **attach a persistent volume/disk** (paid add-on; their free di
 
 ## 4. Logo and PIN code
 Log in as the owner → **Settings**.
-- **Logo:** under *Logo*, choose a square PNG or JPG and press *Upload logo*. It appears in the circle on screen, in print and in PDFs.
+- **Logo:** the Ganpati Bappa artwork is built in and appears in the invoice circle, on screen, in print and in PDFs.
+  To use a different logo, choose a square PNG or JPG under *Logo* and press *Upload logo*; *Remove logo* goes back to Ganpati Bappa.
+- **Watermark:** a faint Ganpati Bappa watermark sits behind the item table. Untick it under *Invoice look* to switch it off.
 - **PIN code:** type the 6 digits in *PIN code* and press *Save settings*. It prints after the address.
 
 All business details (name, address, mobile, GSTIN, declaration, footer) can be changed in the same place.
