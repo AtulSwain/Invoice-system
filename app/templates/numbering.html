@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Starting invoice number</h1>
+<div class="card">
+  {% if locked %}
+    <p>Invoices have already been made. The next number is <b class="big-no">{{ seq.next_number }}</b> and can no longer be changed,
+       so that numbers are never repeated or skipped.</p>
+  {% else %}
+    <p>The next invoice will get the number below. Please check it against:</p>
+    <ul>
+      <li>the last number used on the paper pad (the photo shows <b>198</b>), and</li>
+      <li>the ledger (August 2026 ledger shows bill numbers <b>133 to 150</b>).</li>
+    </ul>
+    <p>Change it if needed, then confirm. After the first invoice is saved, it cannot be changed.</p>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field" style="max-width:240px">
+      <label for="n">Next invoice number</label>
+      <input id="n" type="number" name="next_number" min="1" step="1" value="{{ seq.next_number }}" {% if locked %}readonly{% endif %} required>
+    </div>
+    {% if seq.confirmed %}<p class="muted">Confirmed by {{ seq.confirmed_by }} on {{ seq.confirmed_at|dmy }}.</p>{% endif %}
+    <button class="btn" type="submit">Confirm this number</button>
+  </form>
+</div>
+{% endblock %}

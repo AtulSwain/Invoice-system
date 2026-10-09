@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Monthly Report{% endblock %}
+{% block content %}
+<h1>Monthly Report for the CA</h1>
+<form method="get" class="actions">
+  <input type="month" name="month" value="{{ month_value }}" style="max-width:220px" aria-label="Month">
+  <button class="btn" type="submit">Show</button>
+  <a class="btn secondary" href="{{ url_for('main.monthly_report_xlsx', month=month_value) }}">Download Excel</a>
+  <a class="btn secondary" href="{{ url_for('main.monthly_report_pdf', month=month_value) }}">Download PDF</a>
+  <a class="btn secondary" href="{{ url_for('main.import_bills') }}">Import past bills</a>
+</form>
+<div class="card">
+  <h2 style="margin-top:0">{{ rep.month_name }}</h2>
+  <p>First invoice no.: <b>{{ rep.first_number if rep.first_number is not none else '–' }}</b> ·
+     Last invoice no.: <b>{{ rep.last_number if rep.last_number is not none else '–' }}</b> ·
+     Number of bills: <b>{{ rep.bill_count }}</b></p>
+  <div class="{{ 'flash error' if rep.missing else 'flash success' }}" style="margin:0">Quick check: {{ check }}</div>
+</div>
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Date</th><th>Invoice No.</th><th>Party Name</th><th>Party GSTIN</th><th class="num">Total Qty</th><th class="num">Taxable Value</th><th class="num">CGST</th><th class="num">SGST</th><th class="num">Total</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for r in rep.rows %}
+  <tr>
+    <td>{{ r.date|dmy }}</td><td><a href="{{ url_for('main.view_invoice', invoice_id=r.id) }}">{{ r.number }}</a></td><td>{{ r.party }}</td><td>{{ r.gstin }}</td>
+    <td class="num">{{ r.total_qty }}</td><td class="num">{{ r.net_total|inr(false) }}</td><td class="num">{{ r.cgst|inr(false) }}</td>
+    <td class="num">{{ r.sgst|inr(false) }}</td><td class="num">{{ r.grand_total|inr(false) }}</td>
+    <td>{% if r.cancelled %}<span class="tag cancelled">{{ r.status }}</span>{% else %}{{ r.status }}{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="10" class="muted">No bills this month.</td></tr>
+  {% endfor %}
+  <tr class="total"><td colspan="4">TOTAL ({{ rep.bill_count }} bills{% if rep.cancelled_count %}, {{ rep.cancelled_count }} cancelled{% endif %})</td>
+    <td class="num">{{ rep.totals.total_qty }}</td><td class="num">{{ rep.totals.net_total|inr(false) }}</td><td class="num">{{ rep.totals.cgst|inr(false) }}</td>
+    <td class="num">{{ rep.totals.sgst|inr(false) }}</td><td class="num">{{ rep.totals.grand_total|inr(false) }}</td><td></td></tr>
+  </tbody>
+</table>
+</div>
+<h2>Summary by customer</h2>
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Party Name</th><th>Party GSTIN</th><th class="num">Bills</th><th class="num">Total Qty</th><th class="num">Taxable Value</th><th class="num">CGST</th><th class="num">SGST</th><th class="num">Total</th></tr></thead>
+  <tbody>
+  {% for c in rep.by_customer %}
+  <tr><td>{{ c.party }}</td><td>{{ c.gstin }}</td><td class="num">{{ c.bills }}</td><td class="num">{{ c.total_qty }}</td><td class="num">{{ c.net_total|inr(false) }}</td>
+      <td class="num">{{ c.cgst|inr(false) }}</td><td class="num">{{ c.sgst|inr(false) }}</td><td class="num">{{ c.grand_total|inr(false) }}</td></tr>
+  {% endfor %}
+  <tr class="total"><td colspan="3">TOTAL</td><td class="num">{{ rep.totals.total_qty }}</td><td class="num">{{ rep.totals.net_total|inr(false) }}</td>
+    <td class="num">{{ rep.totals.cgst|inr(false) }}</td><td class="num">{{ rep.totals.sgst|inr(false) }}</td><td class="num">{{ rep.totals.grand_total|inr(false) }}</td></tr>
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<h1>Customers</h1>
+<div class="actions">
+  <a class="btn" href="{{ url_for('main.new_customer') }}">+ Add customer</a>
+  <form method="get" style="flex:1;min-width:220px"><input type="search" name="q" value="{{ q }}" placeholder="Search name…" aria-label="Search customers"></form>
+</div>
+<div class="table-wrap">
+<table class="list stack">
+  <thead><tr><th>Party name</th><th>Address</th><th>GSTIN</th><th>Phone</th>{% if is_owner %}<th></th>{% endif %}</tr></thead>
+  <tbody>
+  {% for c in rows %}
+  <tr>
+    <td data-l="Name"><b>{{ c.name }}</b>{% if not c.active %} <span class="tag inactive">Deactivated</span>{% endif %}</td>
+    <td data-l="Address">{{ c.address }}</td>
+    <td data-l="GSTIN">{{ c.gstin }}</td>
+    <td data-l="Phone">{{ c.phone }}</td>
+    {% if is_owner %}
+    <td class="nowrap">
+      <a class="btn small secondary" href="{{ url_for('main.edit_customer', customer_id=c.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('main.toggle_customer', customer_id=c.id) }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn small secondary" type="submit">{{ 'Deactivate' if c.active else 'Reactivate' }}</button>
+      </form>
+    </td>
+    {% endif %}
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">No customers found.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if is_owner %}<p class="muted">Deactivated customers stay on their old invoices but no longer appear in the New Invoice list.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Import past bills{% endblock %}
+{% block content %}
+<h1>Import past bills (ledger)</h1>
+<div class="banner">
+  Imported bills are marked <b>Imported</b>. They show in monthly reports but <b>do not change the invoice numbering</b>.
+  <br>Before importing the August 2026 ledger, confirm what the three amount columns mean and how the ledger numbers
+  (133 to 150) relate to the pad (198).
+</div>
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+
+{% if rows is none or (not rows and not errors) %}
+<form method="post" enctype="multipart/form-data" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p>CSV columns, in this order: <b>Date, Bill No., Challan No., Party Name, Quantity, Taxable Value, CGST, SGST, Total</b>.
+     Dates as dd/mm/yyyy. CGST, SGST and Total may be left blank: they will then be worked out from the Taxable Value at the current rates.
+     <a href="{{ url_for('main.import_template') }}">Download a blank template</a>.</p>
+  <div class="field"><label for="file">CSV file</label><input id="file" type="file" name="file" accept=".csv,text/csv" required></div>
+  <button class="btn" type="submit">Check file</button>
+</form>
+{% else %}
+<h2>{{ rows|length }} bills ready{% if errors %} – fix the errors above first{% endif %}</h2>
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Date</th><th>Bill No.</th><th>Challan</th><th>Party</th><th class="num">Qty</th><th class="num">Taxable</th><th class="num">CGST</th><th class="num">SGST</th><th class="num">Total</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr><td>{{ r.date|dmy }}</td><td>{{ r.number }}</td><td>{{ r.challan_no }}</td><td>{{ r.party }}</td><td class="num">{{ r.qty }}</td>
+      <td class="num">{{ r.taxable|inr(false) }}</td><td class="num">{{ r.cgst|inr(false) }}</td><td class="num">{{ r.sgst|inr(false) }}</td><td class="num">{{ r.total|inr(false) }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if not errors and rows %}
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="step" value="confirm">
+  <input type="hidden" name="payload" value="{{ payload }}">
+  <label><input type="checkbox" name="confirm_columns" value="1"> I confirm the amount columns are Taxable Value, CGST, SGST and Total as shown above.</label>
+  <label><input type="checkbox" name="confirm_numbering" value="1"> I confirm these bill numbers are past ledger numbers and should stay separate from the invoice numbering.</label>
+  <div class="actions"><button class="btn" type="submit">Import {{ rows|length }} bills</button><a class="btn secondary" href="{{ url_for('main.import_bills') }}">Start again</a></div>
+</form>
+{% else %}
+<p><a class="btn secondary" href="{{ url_for('main.import_bills') }}">Start again</a></p>
+{% endif %}
+{% endif %}
+{% endblock %}

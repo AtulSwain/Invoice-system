@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ 'Edit customer' if editing else 'Add customer' }}</h1>
+{% if errors %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" class="card" style="max-width:640px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field"><label for="name">Party name *</label><input id="name" type="text" name="name" value="{{ data.name }}" required></div>
+  <div class="field"><label for="address">Address</label><textarea id="address" name="address">{{ data.address }}</textarea></div>
+  <div class="grid2">
+    <div class="field"><label for="gstin">Party GSTIN (optional)</label><input id="gstin" type="text" name="gstin" value="{{ data.gstin }}" maxlength="15" style="text-transform:uppercase"></div>
+    <div class="field"><label for="phone">Phone (optional)</label><input id="phone" type="tel" name="phone" value="{{ data.phone }}"></div>
+  </div>
+  <div class="actions"><button class="btn" type="submit">Save</button><a class="btn secondary" href="{{ url_for('main.customers') }}">Back</a></div>
+</form>
+{% endblock %}

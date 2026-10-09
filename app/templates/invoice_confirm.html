@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Check invoice{% endblock %}
+{% block content %}
+<h1>Please check before saving</h1>
+<div class="card">
+  <div class="grid2">
+    <div>
+      <div class="muted">M/s</div><div style="font-size:1.3rem;font-weight:700">{{ data.customer_name }}
+        {% if new_customer %}<span class="tag imported">New customer – will be saved</span>{% endif %}</div>
+      {% if data.customer_address %}<div>{{ data.customer_address }}</div>{% endif %}
+      {% if data.customer_gstin %}<div>GSTIN: {{ data.customer_gstin }}</div>{% endif %}
+    </div>
+    <div>
+      <div class="muted">Date</div><div style="font-size:1.3rem;font-weight:700">{{ data.invoice_date|dmy }}</div>
+      <div class="muted">Invoice No.</div><div><b>{{ seq.next_number }}</b> <span class="muted">(given when you press Save)</span></div>
+    </div>
+  </div>
+</div>
+<div class="table-wrap card">
+<table class="list stack">
+  <thead><tr><th>Sr.</th><th>Challan</th><th>Description</th><th>HSN</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+  <tbody>
+  {% for l in lines %}
+  <tr><td data-l="Sr.">{{ loop.index }}</td><td data-l="Challan">{{ l.challan_no }}</td><td data-l="Description">{{ l.description }}</td><td data-l="HSN">{{ l.hsn_code }}</td>
+      <td data-l="Qty" class="num">{{ l.qty }}</td><td data-l="Rate" class="num">{{ l.rate|inr }}</td><td data-l="Amount" class="num">{{ l.amount|inr }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<div class="card">
+  {% if data.note %}<p><b>{{ data.note }}</b></p>{% endif %}
+  <div class="totals">
+    <div><span>Total quantity</span><span>{{ totals.total_qty }} pcs</span></div>
+    <div><span>Net Total</span><span>{{ totals.net_total|inr }}</span></div>
+    <div><span>CGST {{ cgst_rate }}%</span><span>{{ totals.cgst|inr }}</span></div>
+    <div><span>SGST {{ sgst_rate }}%</span><span>{{ totals.sgst|inr }}</span></div>
+    <div class="grand"><span>Grand Total</span><span>{{ totals.grand_total|inr }}</span></div>
+  </div>
+  <p class="words">{{ totals.grand_total|words }}</p>
+</div>
+<form method="post" action="{{ url_for('main.save_invoice') }}" onsubmit="var f=this; setTimeout(function(){ f.querySelectorAll('button').forEach(function(b){ b.disabled = true; }); }, 0);">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="token" value="{{ token }}">
+  {% for k in ["invoice_date", "customer_name", "customer_address", "customer_gstin", "note"] %}
+  <input type="hidden" name="{{ k }}" value="{{ data[k] }}">
+  {% endfor %}
+  {% for l in data.lines %}
+  <input type="hidden" name="challan_no" value="{{ l.challan_no }}"><input type="hidden" name="description" value="{{ l.description }}">
+  <input type="hidden" name="hsn_code" value="{{ l.hsn_code }}"><input type="hidden" name="qty" value="{{ l.qty_text }}">
+  <input type="hidden" name="rate" value="{{ l.rate_text }}">
+  {% endfor %}
+  <div class="actions">
+    <button class="btn huge" type="submit" name="action" value="save">✓ Save Invoice</button>
+    <button class="btn secondary" type="submit" name="action" value="edit">← Go back and change</button>
+  </div>
+</form>
+{% endblock %}

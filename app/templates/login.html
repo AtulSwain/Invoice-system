@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:40px auto">
+  <h1 style="font-family:Georgia,serif;font-style:italic;color:var(--brand)">{{ biz.company_name }}</h1>
+  <p class="muted">{{ biz.tagline }}</p>
+  {% if no_users %}
+  <div class="banner">No accounts yet. On the computer running the app, run <code>python seed.py</code> to create the owner and worker logins.</div>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label for="u">Username</label><input id="u" type="text" name="username" autocomplete="username" autocapitalize="none" required autofocus></div>
+    <div class="field"><label for="p">Password</label><input id="p" type="password" name="password" autocomplete="current-password" required></div>
+    <button class="btn" type="submit" style="width:100%">Log in</button>
+  </form>
+</div>
+{% endblock %}

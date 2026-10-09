@@ -1,0 +1,9 @@
+# Runtime
+Flask>=3.0,<4
+openpyxl>=3.1,<4      # Excel export for the CA report
+reportlab>=4.0,<6     # PDF invoices and PDF report (pure Python, no system libraries)
+waitress>=3.0,<4      # production web server (works on Windows, Linux and Mac)
+tzdata>=2024.1        # Asia/Kolkata time zone data on Windows
+
+# Tests only
+pytest>=8

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Invoice {{ inv.number }}{% endblock %}
+{% block content %}
+<h1 class="no-print">Invoice {{ inv.number }}
+  {% if inv.status == 'cancelled' %}<span class="tag cancelled">CANCELLED</span>{% endif %}
+  {% if inv.source == 'imported' %}<span class="tag imported">Imported</span>{% endif %}
+</h1>
+<div class="actions no-print">
+  <a class="btn" href="{{ url_for('main.print_invoice', invoice_id=inv.id) }}" target="_blank" rel="noopener">Print</a>
+  <a class="btn secondary" href="{{ url_for('main.invoice_pdf_view', invoice_id=inv.id) }}">Download PDF</a>
+  {% if inv.source == 'live' %}
+  <a class="btn secondary" href="{{ url_for('main.new_invoice', copy=inv.id) }}">Copy to new invoice</a>
+  {% endif %}
+  {% if is_owner and inv.status == 'active' %}
+  <a class="btn danger" href="{{ url_for('main.cancel', invoice_id=inv.id) }}">Cancel invoice</a>
+  {% endif %}
+</div>
+{% if inv.status == 'cancelled' %}
+<div class="banner no-print">Cancelled by {{ inv.cancelled_by }} on {{ inv.cancelled_at|dmy }}{{ inv.cancelled_at[10:16] }}. Reason: {{ inv.cancel_reason }}</div>
+{% endif %}
+<p class="muted no-print">Created by {{ inv.created_by }} on {{ inv.created_at|dmy }}{{ inv.created_at[10:16] }}.</p>
+<div class="sheet-wrap">{% include "_sheet.html" %}</div>
+{% endblock %}
